@@ -173,7 +173,6 @@ module Databasedotcom
           # Register normal fields
           name = field["name"]
           register_field( field["name"], field )
-
           # Register relationship fields.
           if( field["type"] == "reference" and field["relationshipName"] )
             register_field( field["relationshipName"], field )
@@ -345,10 +344,15 @@ module Databasedotcom
         }
       end
 
-      def self.field_list
-        self.description['fields'].collect { |f| f['name'] }.join(',')
+      def self.register_reference_name( name, reference_name )
+        self.type_map[name][:reference_name] = name + '.' + reference_name
       end
 
+      def self.field_list
+        (self.description['fields'].collect { |f| f['name'] } +
+           self.type_map.select { |k,f| f[:reference_name] != nil }.collect { |k,l| l[:reference_name] }).join(',')
+      end
+      
       def self.type_map_attr(attr_name, key)
         raise ArgumentError.new("No attribute named #{attr_name}") unless self.type_map.has_key?(attr_name)
         self.type_map[attr_name][key]
